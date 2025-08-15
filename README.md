@@ -13,10 +13,6 @@ A foobar2000 component that combines spectrum visualization with seekbar functio
 
 ## 📸 Screenshots
 
-### Blocks Style - Basic View
-![Blocks Basic](screen/Snímek%20obrazovky%202025-08-15%20170314.png)
-*Classic stacked block visualization - basic display*
-
 ### Lines Style (Stereo)
 ![Lines Stereo](screen/Snímek%20obrazovky%202025-08-15%20171406.png)
 *Smooth line visualization with mirrored stereo channels*
@@ -25,9 +21,9 @@ A foobar2000 component that combines spectrum visualization with seekbar functio
 ![Bars Stereo](screen/Snímek%20obrazovky%202025-08-15%20171427.png)
 *Traditional bar visualization with stereo channel separation*
 
-### Blocks Style - With Menu Labels
-![Blocks with Labels](screen/Snímek%20obrazovky%202025-08-15%20171438.png)
-*Same blocks style but showing the menu indicator labels*
+### Blocks Style (Mono)
+![Blocks Mono](screen/Snímek%20obrazovky%202025-08-15%20171438.png)
+*Stacked block visualization in mono mode*
 
 ### Dots Style (Mono)
 ![Dots Mono](screen/Snímek%20obrazovky%202025-08-15%20171447.png)
