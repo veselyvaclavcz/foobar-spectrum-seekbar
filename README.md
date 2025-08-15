@@ -13,8 +13,8 @@ A foobar2000 component that combines spectrum visualization with seekbar functio
 
 ## 📸 Screenshots
 
-### Blocks Style (Mono)
-![Blocks Mono](screen/Snímek%20obrazovky%202025-08-15%20170314.png)
+### Blocks Style
+![Blocks](screen/Snímek%20obrazovky%202025-08-15%20170314.png)
 
 ### Lines Style (Stereo)
 ![Lines Stereo](screen/Snímek%20obrazovky%202025-08-15%20171406.png)
@@ -22,8 +22,8 @@ A foobar2000 component that combines spectrum visualization with seekbar functio
 ### Bars Style (Stereo)
 ![Bars Stereo](screen/Snímek%20obrazovky%202025-08-15%20171427.png)
 
-### Blocks Style (Mono)
-![Blocks Mono Detail](screen/Snímek%20obrazovky%202025-08-15%20171438.png)
+### Blocks Style (with Mode Indicator)
+![Blocks with Indicator](screen/Snímek%20obrazovky%202025-08-15%20171438.png)
 
 ### Dots Style (Mono)
 ![Dots Mono](screen/Snímek%20obrazovky%202025-08-15%20171447.png)
