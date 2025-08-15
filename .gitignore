@@ -1,0 +1,19 @@
+# Build outputs
+*.dll
+*.lib
+*.exp
+*.obj
+*.pdb
+
+# SDK (not included in repository)
+SDK-2025-03-07/
+
+# Temporary build files
+temp_component/
+*.zip
+
+# Visual Studio
+.vs/
+x64/
+Debug/
+Release/
