@@ -1,7 +1,7 @@
 // Spectrum Seekbar V10 - 4 styles (lines, bars, blocks, dots) with mono/stereo modes
 #define FOOBAR2000_TARGET_VERSION 80
 
-#include "SDK-2025-03-07/foobar2000/SDK/foobar2000.h"
+#include "backup/foo_seekbar/SDK-2025-03-07/foobar2000/SDK/foobar2000.h"
 #include <windows.h>
 #include <windowsx.h>
 #include <math.h>
@@ -47,6 +47,9 @@ private:
     // Seeking
     bool m_seeking;
     
+    // Cleanup tracking
+    bool m_callbacks_registered;
+    
     // Display modes
     enum VisualizationStyle {
         STYLE_LINES = 0,
@@ -69,20 +72,52 @@ public:
     spectrum_seekbar_v10(ui_element_config::ptr config, ui_element_instance_callback::ptr callback) 
         : m_callback(callback), m_hwnd(NULL), m_timer(0), m_is_playing(false),
           m_track_length(0), m_playback_position(0), m_seeking(false), 
+          m_callbacks_registered(false),
           m_visualization_style(STYLE_BARS), m_channel_mode(CHANNEL_MONO) {
         
         memset(m_bars, 0, sizeof(m_bars));
         memset(m_peaks, 0, sizeof(m_peaks));
         memset(m_bars_left, 0, sizeof(m_bars_left));
         memset(m_bars_right, 0, sizeof(m_bars_right));
+        
+        // Load configuration if available
+        if (config.is_valid() && config->get_data_size() >= 8) {
+            const t_uint8* data = (const t_uint8*)config->get_data();
+            m_visualization_style = *(int*)data;
+            m_channel_mode = *(int*)(data + 4);
+            
+            // Validate loaded values
+            if (m_visualization_style < 0 || m_visualization_style >= STYLE_COUNT)
+                m_visualization_style = STYLE_BARS;
+            if (m_channel_mode < 0 || m_channel_mode >= CHANNEL_COUNT)
+                m_channel_mode = CHANNEL_MONO;
+        }
     }
     
     ~spectrum_seekbar_v10() {
-        if (m_timer) {
+        // Clean up timer if window still exists
+        if (m_timer && m_hwnd && IsWindow(m_hwnd)) {
             KillTimer(m_hwnd, m_timer);
+            m_timer = 0;
         }
+        
+        // Unregister playback callback
+        if (m_callbacks_registered) {
+            try {
+                static_api_ptr_t<play_callback_manager>()->unregister_callback(this);
+                m_callbacks_registered = false;
+            } catch(...) {}
+        }
+        
+        // Release visualization stream
         if (m_vis_stream.is_valid()) {
             m_vis_stream.release();
+        }
+        
+        // Destroy window if it still exists
+        if (m_hwnd && IsWindow(m_hwnd)) {
+            DestroyWindow(m_hwnd);
+            m_hwnd = NULL;
         }
     }
     
@@ -116,6 +151,7 @@ public:
             play_callback::flag_on_playback_all | play_callback::flag_on_playback_time,
             false
         );
+        m_callbacks_registered = true;
         
         // Get initial state
         update_playback_state();
@@ -162,8 +198,31 @@ public:
     
     HWND get_wnd() { return m_hwnd; }
     
-    void set_configuration(ui_element_config::ptr config) {}
-    ui_element_config::ptr get_configuration() { return ui_element_config::g_create_empty(g_get_guid()); }
+    void set_configuration(ui_element_config::ptr config) {
+        // Load configuration if available
+        if (config.is_valid() && config->get_data_size() >= 8) {
+            const t_uint8* data = (const t_uint8*)config->get_data();
+            m_visualization_style = *(int*)data;
+            m_channel_mode = *(int*)(data + 4);
+            
+            // Validate loaded values
+            if (m_visualization_style < 0 || m_visualization_style >= STYLE_COUNT)
+                m_visualization_style = STYLE_BARS;
+            if (m_channel_mode < 0 || m_channel_mode >= CHANNEL_COUNT)
+                m_channel_mode = CHANNEL_MONO;
+                
+            // Refresh display
+            if (m_hwnd) InvalidateRect(m_hwnd, NULL, FALSE);
+        }
+    }
+    
+    ui_element_config::ptr get_configuration() { 
+        // Save current settings
+        ui_element_config_builder builder;
+        builder << m_visualization_style;
+        builder << m_channel_mode;
+        return builder.finish(g_get_guid());
+    }
     
     GUID get_guid() { return g_get_guid(); }
     GUID get_subclass() { return g_get_subclass(); }
@@ -204,9 +263,13 @@ public:
         if (cmd >= 1001 && cmd <= 1004) {
             m_visualization_style = cmd - 1001;
             InvalidateRect(m_hwnd, NULL, FALSE);
+            // Save configuration
+            m_callback->on_min_max_info_change();
         } else if (cmd >= 2001 && cmd <= 2002) {
             m_channel_mode = cmd - 2001;
             InvalidateRect(m_hwnd, NULL, FALSE);
+            // Save configuration
+            m_callback->on_min_max_info_change();
         }
         
         DestroyMenu(channelMenu);
@@ -253,18 +316,32 @@ public:
                 
             case WM_RBUTTONUP:
                 {
-                    POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-                    ClientToScreen(hwnd, &pt);
-                    p_this->show_menu(pt);
+                    // Check if layout editing mode is active
+                    if (p_this->m_callback->is_edit_mode_enabled()) {
+                        // In edit mode, don't handle - let parent window handle it
+                        break;  // Fall through to DefWindowProc
+                    } else {
+                        // Show custom visualization menu
+                        POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+                        ClientToScreen(hwnd, &pt);
+                        p_this->show_menu(pt);
+                        return 0;
+                    }
                 }
-                return 0;
                 
             case WM_DESTROY:
                 if (p_this->m_timer) {
                     KillTimer(hwnd, p_this->m_timer);
                     p_this->m_timer = 0;
                 }
-                static_api_ptr_t<play_callback_manager>()->unregister_callback(p_this);
+                if (p_this->m_callbacks_registered) {
+                    try {
+                        static_api_ptr_t<play_callback_manager>()->unregister_callback(p_this);
+                        p_this->m_callbacks_registered = false;
+                    } catch(...) {}
+                }
+                // Clear the window pointer to prevent double-cleanup
+                p_this->m_hwnd = NULL;
                 return 0;
         }
         
