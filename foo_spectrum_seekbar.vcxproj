@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Builds foo_spectrum_seekbar_v10.dll and packages it as a .fb2k-component.
+
+    The foobar2000 SDK 2025-03-07 is NOT part of this repository. Download it from
+    https://www.foobar2000.org/SDK and either extract it to .\SDK-2025-03-07\ (ignored by git)
+    or pass its location:  msbuild foo_spectrum_seekbar.vcxproj -p:Fb2kSdk=C:\path\to\SDK-2025-03-07
+
+    The required SDK libraries (pfc, foobar2000_SDK, shared, foobar2000_component_client)
+    are built automatically through project references.
+  -->
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6B1D2C1E-5F43-4C8E-9A57-0C3F5E2B7A10}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>foo_spectrum_seekbar</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <PropertyGroup Label="Component">
+    <ComponentVersion>10.0.0</ComponentVersion>
+    <Fb2kSdk Condition="'$(Fb2kSdk)' == ''">$(MSBuildThisFileDirectory)SDK-2025-03-07</Fb2kSdk>
+    <Fb2kSdkDir>$([MSBuild]::EnsureTrailingSlash('$([System.IO.Path]::GetFullPath('$(Fb2kSdk)'))'))</Fb2kSdkDir>
+    <BuildRoot>$(MSBuildThisFileDirectory)build\</BuildRoot>
+    <ComponentPackage>$(BuildRoot)foo_spectrum_seekbar_v10-$(ComponentVersion).fb2k-component</ComponentPackage>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(BuildRoot)x64\Release\</OutDir>
+    <IntDir>$(BuildRoot)obj\x64\Release\</IntDir>
+    <!-- The DLL name is checked at load time by VALIDATE_COMPONENT_FILENAME -->
+    <TargetName>foo_spectrum_seekbar_v10</TargetName>
+    <TargetExt>.dll</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;UNICODE;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(Fb2kSdkDir);$(Fb2kSdkDir)foobar2000\SDK;$(Fb2kSdkDir)pfc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>user32.lib;gdi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Message>Packaging $(ComponentPackage)</Message>
+      <!-- A .fb2k-component is a zip archive; Compress-Archive only accepts a .zip extension, so zip first and rename -->
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference = 'Stop'; Compress-Archive -Path '$(TargetPath)' -DestinationPath '$(ComponentPackage).zip' -Force; Move-Item -Path '$(ComponentPackage).zip' -Destination '$(ComponentPackage)' -Force"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="spectrum_seekbar_v10.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(Fb2kSdkDir)pfc\pfc.vcxproj">
+      <Project>{EBFFFB4E-261D-44D3-B89C-957B31A0BF9C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(Fb2kSdkDir)foobar2000\SDK\foobar2000_SDK.vcxproj">
+      <Project>{E8091321-D79D-4575-86EF-064EA1A4A20D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(Fb2kSdkDir)foobar2000\shared\shared.vcxproj">
+      <Project>{054C606B-17BF-4540-AC4E-A9A7243628B8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(Fb2kSdkDir)foobar2000\foobar2000_component_client\foobar2000_component_client.vcxproj">
+      <Project>{71AD2674-065B-48F5-B8B0-E1F9D3892081}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="CheckFb2kSdk" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(Fb2kSdkDir)foobar2000\SDK\foobar2000.h')" Text="foobar2000 SDK not found at '$(Fb2kSdkDir)'. Download SDK 2025-03-07 from https://www.foobar2000.org/SDK and extract it to .\SDK-2025-03-07 or pass -p:Fb2kSdk=&lt;path&gt;." />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

@@ -1,7 +1,7 @@
 // Spectrum Seekbar V10 - 4 styles (lines, bars, blocks, dots) with mono/stereo modes
 #define FOOBAR2000_TARGET_VERSION 80
 
-#include "backup/foo_seekbar/SDK-2025-03-07/foobar2000/SDK/foobar2000.h"
+#include "foobar2000/SDK/foobar2000.h" // resolved via the SDK root include path (see foo_spectrum_seekbar.vcxproj)
 #include <windows.h>
 #include <windowsx.h>
 #include <math.h>
