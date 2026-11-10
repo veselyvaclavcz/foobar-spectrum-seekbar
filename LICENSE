@@ -2,11 +2,6 @@ MIT License
 
 Copyright (c) 2025 Václav Veselý
 
-This license applies to the original source code of Spectrum Seekbar
-(foo_spectrum_seekbar) in this repository. The foobar2000 SDK, which is
-required to build it, is not included and is distributed under its own
-license.
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
