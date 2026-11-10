@@ -1,19 +1,32 @@
-# Build outputs
+# Build output
+build/
+x64/
+Debug/
+Release/
 *.dll
 *.lib
 *.exp
 *.obj
 *.pdb
+*.iobj
+*.ipdb
+*.pch
+*.tlog
+*.lastbuildstate
+*.recipe
+*.log
 
-# SDK (not included in repository)
+# Packaged components: only the published release is tracked
+*.fb2k-component
+!/foo_spectrum_seekbar_v10-10.0.0.fb2k-component
+
+# foobar2000 SDK (not included in the repository, see README)
 SDK-2025-03-07/
 
-# Temporary build files
+# Temporary files
 temp_component/
 *.zip
 
 # Visual Studio
 .vs/
-x64/
-Debug/
-Release/
+*.user
