@@ -123,4 +123,4 @@ The source code of Spectrum Seekbar is released under the [MIT License](LICENSE)
 
 Third-party: building requires the foobar2000 SDK by Peter Pawlowski, which is
 **not included** in this repository and is distributed under its own license
-(see `sdk-license.txt` in the SDK download).
+(see the license file included in the SDK download).
